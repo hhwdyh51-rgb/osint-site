@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>מערכת תחקור גלובלית - Global OSINT Hub</title>
+  <title>מערכת תחקור OSINT גלובלית</title>
   <style>
     body {
       font-family: Arial, sans-serif;
@@ -13,7 +13,7 @@
       padding: 30px 16px;
     }
     .box {
-      max-width: 850px;
+      max-width: 880px;
       margin: 0 auto;
       background: #1e293b;
       padding: 24px;
@@ -26,12 +26,13 @@
       margin-bottom: 20px;
       border-bottom: 2px solid #334155;
       padding-bottom: 10px;
+      flex-wrap: wrap;
     }
     .tab-btn {
       background: transparent;
       border: none;
       color: #94a3b8;
-      font-size: 16px;
+      font-size: 15px;
       font-weight: bold;
       padding: 8px 16px;
       cursor: pointer;
@@ -51,29 +52,42 @@
       display: flex;
       gap: 10px;
       flex-wrap: wrap;
+      margin-bottom: 10px;
     }
     input[type="text"], input[type="file"] {
       flex: 1;
-      min-width: 240px;
+      min-width: 220px;
       padding: 12px;
       border-radius: 8px;
       border: 1px solid #475569;
       background: #0f172a;
       color: #ffffff;
-      font-size: 16px;
+      font-size: 15px;
     }
     button.action-btn {
-      padding: 12px 24px;
+      padding: 12px 20px;
       border-radius: 8px;
       border: none;
       background: #2563eb;
       color: white;
-      font-size: 16px;
+      font-size: 15px;
       font-weight: bold;
       cursor: pointer;
     }
     button.action-btn:hover {
       background: #1d4ed8;
+    }
+    button.secondary-btn {
+      padding: 8px 14px;
+      border-radius: 6px;
+      border: 1px solid #475569;
+      background: #1e293b;
+      color: #e2e8f0;
+      font-size: 14px;
+      cursor: pointer;
+    }
+    button.secondary-btn:hover {
+      background: #334155;
     }
     .card {
       background: #0f172a;
@@ -93,7 +107,7 @@
     }
     .platform-grid {
       display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+      grid-template-columns: repeat(auto-fill, minmax(185px, 1fr));
       gap: 10px;
       margin-top: 10px;
     }
@@ -113,42 +127,48 @@
       color: #ffffff;
     }
     .img-preview {
-      max-width: 250px;
-      max-height: 250px;
+      max-width: 260px;
+      max-height: 260px;
       border-radius: 8px;
       margin-top: 10px;
       border: 2px solid #334155;
+    }
+    .note {
+      color: #94a3b8;
+      font-size: 13px;
     }
   </style>
 </head>
 <body>
   <div class="box">
     <h2>מערכת תחקור OSINT גלובלית</h2>
-    
+
     <div class="tabs">
-      <button class="tab-btn active" onclick="switchTab('text-search')">חיפוש מזהה / טקסט</button>
-      <button class="tab-btn" onclick="switchTab('image-search')">חיפוש לפי תמונה</button>
+      <button class="tab-btn active" onclick="switchTab('text-search', 0)">חיפוש (שם / כתובת / פרופיל / מזהה)</button>
+      <button class="tab-btn" onclick="switchTab('image-search', 1)">חיפוש לפי תמונה</button>
     </div>
 
-    <!-- טאב 1: חיפוש טקסטואלי -->
     <div id="text-search" class="tab-content active">
-      <p>הזן שם משתמש, דומיין, כתובת IP או מספר טלפון לסריקה עולמית:</p>
+      <p>הזן שם מלא, כתובת/מיקום, פרופיל או שם משתמש, דומיין, IP או מספר טלפון:</p>
       <div class="controls">
-        <input id="queryInput" type="text" placeholder="לדוגמה: octocat, example.com, 8.8.8.8 או 0534182833" />
-        <button id="runBtn" class="action-btn">סרוק בעולם</button>
+        <input id="queryInput" type="text" placeholder="לדוגמה: דני כהן, דיזינגוף 50 תל אביב, @octocat, example.com או 0534182833" />
+        <button id="runBtn" class="action-btn">חפש</button>
+      </div>
+      <div class="controls">
+        <input id="extraContextInput" type="text" placeholder="פרט משלים אופציונלי (למשל: עיר, חברה, תחום או מדינה)" />
       </div>
     </div>
 
-    <!-- טאב 2: חיפוש תמונות -->
     <div id="image-search" class="tab-content">
-      <p>הכנס קישור לתמונה ברשת או העלה קובץ תמונה מהמכשיר:</p>
-      <div class="controls" style="margin-bottom: 10px;">
-        <input id="imgUrlInput" type="text" placeholder="הדבק קישור ישיר לתמונה (URL)..." />
-        <button id="imgUrlBtn" class="action-btn">חפש לפי קישור</button>
+      <p>הדבק כתובת תמונה (URL) או בחר קובץ תמונה מהמכשיר:</p>
+      <div class="controls">
+        <input id="imgUrlInput" type="text" placeholder="הדבק כתובת תמונה (URL)..." />
+        <button id="imgUrlBtn" class="action-btn">הצג כלי חיפוש לתמונה</button>
       </div>
       <div class="controls">
         <input id="imgFileInput" type="file" accept="image/*" />
       </div>
+      <p class="note">הערה: מנועי חיפוש הפוך חיצוניים לרוב חוסמים שליחת קישור אוטומטית מהדפדפן—הכפתורים פותחים את המנועים כדי שתוכל להדביק/להעלות את התמונה ישירות.</p>
     </div>
 
     <div id="output"></div>
