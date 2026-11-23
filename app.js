@@ -4,16 +4,25 @@ const inputEl = document.getElementById("queryInput");
 const btnEl = document.getElementById("runBtn");
 const outputEl = document.getElementById("output");
 
-function analyzePhoneBasic(raw) {
+function analyzePhone(raw) {
   const cleaned = raw.replace(/[^\d+]/g, "");
   const digitsOnly = cleaned.replace(/\+/g, "");
   if (!/^\+?\d{7,15}$/.test(cleaned) || digitsOnly.length < 7) {
     return null;
   }
 
-  let countryHint = "לא מזוהה (הוסף קידומת כמו +972)";
+  let countryHint = "לא מזוהה (הוסף קידומת בינלאומית כמו +972)";
+  let e164 = cleaned.startsWith("+") ? cleaned : `+${digitsOnly}`;
+
   if (cleaned.startsWith("+972") || digitsOnly.startsWith("972")) {
     countryHint = "ישראל (+972)";
+    e164 = `+${digitsOnly}`;
+  } else if (/^05\d{8}$/.test(digitsOnly)) {
+    countryHint = "ישראל — מספר נייד מקומי (05x)";
+    e164 = `+972${digitsOnly.slice(1)}`;
+  } else if (/^0[23489]\d{7}$/.test(digitsOnly)) {
+    countryHint = "ישראל — מספר נייח מקומי";
+    e164 = `+972${digitsOnly.slice(1)}`;
   } else if (cleaned.startsWith("+1")) {
     countryHint = "ארה״ב / קנדה (+1)";
   } else if (cleaned.startsWith("+44")) {
@@ -21,7 +30,7 @@ function analyzePhoneBasic(raw) {
   }
 
   return {
-    normalized: cleaned.startsWith("+") ? cleaned : `+${digitsOnly}`,
+    e164,
     length: digitsOnly.length,
     countryHint
   };
@@ -39,21 +48,23 @@ async function fetchJson(url) {
 btnEl.addEventListener("click", async () => {
   const val = inputEl.value.trim();
   if (!val) {
-    outputEl.innerHTML = `<div class="card">נא להזין שם משתמש, דומיין, IP או מספר טלפון.</div>`;
+    outputEl.innerHTML = `<div class="card">נא להזין ערך לבדיקה.</div>`;
     return;
   }
 
-  outputEl.innerHTML = `<div class="card">מבצע בדיקה עבור <b>${val}</b>...</div>`;
+  outputEl.innerHTML = `<div class="card">מבצע בדיקות עבור <b>${val}</b>...</div>`;
   let html = "";
 
-  const phoneInfo = analyzePhoneBasic(val);
+  const phoneInfo = analyzePhone(val);
   if (phoneInfo) {
+    const encodedPhone = encodeURIComponent(`"${val}"`);
     html += `
       <div class="card">
         <h3>ניתוח מספר טלפון (מבני)</h3>
-        <p>פורמט מנוקה: ${phoneInfo.normalized}</p>
-        <p>אורך ספרות: ${phoneInfo.length}</p>
-        <p>זיהוי קידומת: ${phoneInfo.countryHint}</p>
+        <p>פורמט בינלאומי משוער: ${phoneInfo.e164}</p>
+        <p>מספר ספרות: ${phoneInfo.length}</p>
+        <p>זיהוי אזור/קידומת: ${phoneInfo.countryHint}</p>
+        <p>חיפוש מופעים ציבוריים: <a href="https://www.google.com/search?q=${encodedPhone}" target="_blank" style="color:#60a5fa">חפש בגוגל</a></p>
       </div>
     `;
   }
@@ -71,10 +82,10 @@ btnEl.addEventListener("click", async () => {
           </div>
         `;
       } else {
-        html += `<div class="card">GitHub: לא נמצא משתמש תואם.</div>`;
+        html += `<div class="card">GitHub: לא נמצא פרופיל תואם.</div>`;
       }
     } catch {
-      html += `<div class="card">GitHub: לא נמצא פרופיל או שאירעה שגיאת רשת.</div>`;
+      html += `<div class="card">GitHub: לא נמצא פרופיל תואם.</div>`;
     }
   }
 
@@ -92,7 +103,7 @@ btnEl.addEventListener("click", async () => {
           </div>
         `;
       } catch {
-        html += `<div class="card">DNS: לא הצלחתי לבדוק את הדומיין.</div>`;
+        html += `<div class="card">DNS: שגיאה בבדיקת הדומיין.</div>`;
       }
     }
 
