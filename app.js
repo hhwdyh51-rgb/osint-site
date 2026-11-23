@@ -1,6 +1,7 @@
 const PROXY_URL = "https://osint-proxy.hhwdyh51.workers.dev";
 
 const inputEl = document.getElementById("queryInput");
+const extraEl = document.getElementById("extraContextInput");
 const btnEl = document.getElementById("runBtn");
 const outputEl = document.getElementById("output");
 
@@ -8,16 +9,12 @@ const imgUrlInput = document.getElementById("imgUrlInput");
 const imgUrlBtn = document.getElementById("imgUrlBtn");
 const imgFileInput = document.getElementById("imgFileInput");
 
-function switchTab(tabId) {
-  document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
-  document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
-  
-  if (tabId === 'text-search') {
-    document.querySelectorAll('.tab-btn')[0].classList.add('active');
-  } else {
-    document.querySelectorAll('.tab-btn')[1].classList.add('active');
-  }
-  document.getElementById(tabId).classList.add('active');
+function switchTab(tabId, index) {
+  document.querySelectorAll(".tab-btn").forEach((btn) => btn.classList.remove("active"));
+  document.querySelectorAll(".tab-content").forEach((content) => content.classList.remove("active"));
+
+  document.querySelectorAll(".tab-btn")[index].classList.add("active");
+  document.getElementById(tabId).classList.add("active");
   outputEl.innerHTML = "";
 }
 
@@ -49,6 +46,10 @@ function analyzePhone(raw) {
   return { e164, length: digitsOnly.length, countryHint };
 }
 
+function looksLikeAddress(text) {
+  return /\d/.test(text) || /(רחוב|שד׳|שדרות|דרך|מס׳|מספר|עיר|street|st\.|ave|avenue|road|rd\.|blvd)/i.test(text);
+}
+
 async function fetchJson(url) {
   const proxyTarget = `${PROXY_URL}?url=${encodeURIComponent(url)}`;
   const res = await fetch(proxyTarget);
@@ -56,48 +57,71 @@ async function fetchJson(url) {
   return res.json();
 }
 
-function renderGlobalPlatforms(username) {
-  const u = encodeURIComponent(username);
-  const q = encodeURIComponent(`"${username}"`);
-  
+function renderPeopleAddressProfiles(rawQuery, extraContext) {
+  const cleanHandle = rawQuery.replace(/^@+/, "").trim();
+  const combined = extraContext ? `${rawQuery} ${extraContext}`.trim() : rawQuery;
+  const quotedMain = `"${rawQuery}"`;
+  const quotedCombined = `"${combined}"`;
+  const isAddr = looksLikeAddress(combined);
+
+  const qMain = encodeURIComponent(quotedMain);
+  const qComb = encodeURIComponent(quotedCombined);
+  const qMaps = encodeURIComponent(combined);
+  const qLinkedIn = encodeURIComponent(`${quotedCombined} site:linkedin.com/in`);
+  const qFb = encodeURIComponent(`${quotedCombined} site:facebook.com`);
+  const qIg = encodeURIComponent(`${quotedCombined} site:instagram.com`);
+  const qX = encodeURIComponent(`${quotedCombined} (site:x.com OR site:twitter.com)`);
+  const u = encodeURIComponent(cleanHandle);
+
   return `
     <div class="card">
-      <h3>סריקת שם משתמש בפלטפורמות ברחבי العالم</h3>
-      <p>לחץ על הפלטפורמה לבדיקה ישירה של הפרופיל:</p>
+      <h3>חיפוש שמות, כתובות ופרופילים</h3>
+      <p><b>שאילתה:</b> ${combined}</p>
+      <p class="note">סוג מזוהה: ${isAddr ? "כתובת / מיקום / פרט משולב" : "שם / פרופיל / מונח כללי"}</p>
       <div class="platform-grid">
-        <a class="platform-link" href="https://github.com/${u}" target="_blank">GitHub</a>
-        <a class="platform-link" href="https://gitlab.com/${u}" target="_blank">GitLab</a>
-        <a class="platform-link" href="https://twitter.com/${u}" target="_blank">X (Twitter)</a>
-        <a class="platform-link" href="https://www.instagram.com/${u}/" target="_blank">Instagram</a>
-        <a class="platform-link" href="https://www.tiktok.com/@${u}" target="_blank">TikTok</a>
-        <a class="platform-link" href="https://www.facebook.com/${u}" target="_blank">Facebook</a>
-        <a class="platform-link" href="https://www.youtube.com/@${u}" target="_blank">YouTube</a>
-        <a class="platform-link" href="https://t.me/${u}" target="_blank">Telegram</a>
-        <a class="platform-link" href="https://www.reddit.com/user/${u}/" target="_blank">Reddit</a>
-        <a class="platform-link" href="https://www.pinterest.com/${u}/" target="_blank">Pinterest</a>
-        <a class="platform-link" href="https://medium.com/@${u}" target="_blank">Medium</a>
-        <a class="platform-link" href="https://steamcommunity.com/id/${u}" target="_blank">Steam</a>
-        <a class="platform-link" href="https://dev.to/${u}" target="_blank">DEV.to</a>
-        <a class="platform-link" href="https://news.ycombinator.com/user?id=${u}" target="_blank">Hacker News</a>
-        <a class="platform-link" href="https://www.google.com/search?q=${q}" target="_blank">גוגל (מופעים)</a>
-        <a class="platform-link" href="https://www.bing.com/search?q=${q}" target="_blank">Bing (מופעים)</a>
+        <a class="platform-link" href="https://www.google.com/search?q=${qComb}" target="_blank">גוגל (מדויק)</a>
+        <a class="platform-link" href="https://www.bing.com/search?q=${qComb}" target="_blank">Bing (מדויק)</a>
+        <a class="platform-link" href="https://www.google.com/search?q=${qLinkedIn}" target="_blank">פרופילי LinkedIn</a>
+        <a class="platform-link" href="https://www.google.com/search?q=${qFb}" target="_blank">Facebook</a>
+        <a class="platform-link" href="https://www.google.com/search?q=${qIg}" target="_blank">Instagram</a>
+        <a class="platform-link" href="https://www.google.com/search?q=${qX}" target="_blank">X / Twitter</a>
+        <a class="platform-link" href="https://www.google.com/maps/search/?api=1&query=${qMaps}" target="_blank">Google Maps</a>
+        <a class="platform-link" href="https://www.openstreetmap.org/search?query=${qMaps}" target="_blank">OpenStreetMap</a>
+        <a class="platform-link" href="https://www.reddit.com/search/?q=${qMain}" target="_blank">Reddit</a>
+        <a class="platform-link" href="https://github.com/${u}" target="_blank">GitHub (@${cleanHandle})</a>
+        <a class="platform-link" href="https://t.me/${u}" target="_blank">Telegram (@${cleanHandle})</a>
+        <a class="platform-link" href="https://www.youtube.com/@${u}" target="_blank">YouTube (@${cleanHandle})</a>
       </div>
     </div>
   `;
 }
 
-function renderImageSearches(imageUrl) {
-  const encodedUrl = encodeURIComponent(imageUrl);
+function renderImageHub(imageUrl = "", fileMeta = null) {
+  const safeUrl = imageUrl.trim();
+  const previewBlock = fileMeta
+    ? `
+      <p><b>קובץ:</b> ${fileMeta.name}</p>
+      <p><b>גודל:</b> ${(fileMeta.size / 1024).toFixed(1)} KB | <b>סוג:</b> ${fileMeta.type || "לא ידוע"}</p>
+      <img src="${fileMeta.dataUrl}" class="img-preview" alt="תצוגה מקדימה" />
+    `
+    : safeUrl
+      ? `
+        <p><b>כתובת תמונה:</b> ${safeUrl}</p>
+        <img src="${safeUrl}" class="img-preview" alt="תצוגה מקדימה" onerror="this.style.display='none'" />
+      `
+      : "";
+
   return `
     <div class="card">
-      <h3>תצוגה מקדימה וחיפוש הפוך בעולם</h3>
-      <img src="${imageUrl}" class="img-preview" alt="תצוגה מקדימה" onerror="this.style.display='none'" />
-      <p style="margin-top: 12px;">מנועי חיפוש תמונות גלובליים:</p>
+      <h3>כלי חיפוש תמונות (Reverse Image Search)</h3>
+      ${previewBlock}
+      <p style="margin-top: 12px;">פתח את המנועים והדבק/העלה את התמונה ישירות:</p>
       <div class="platform-grid">
-        <a class="platform-link" href="https://lens.google.com/uploadbyurl?url=${encodedUrl}" target="_blank">Google Lens</a>
-        <a class="platform-link" href="https://yandex.com/images/search?rpt=imageview&url=${encodedUrl}" target="_blank">Yandex Images</a>
-        <a class="platform-link" href="https://www.bing.com/images/searchbyimage?cbir=sbi&imgurl=${encodedUrl}" target="_blank">Bing Visual</a>
-        <a class="platform-link" href="https://tineye.com/search?url=${encodedUrl}" target="_blank">TinEye</a>
+        <a class="platform-link" href="https://lens.google.com/" target="_blank">Google Lens</a>
+        <a class="platform-link" href="https://images.google.com/" target="_blank">Google Images</a>
+        <a class="platform-link" href="https://yandex.com/images/" target="_blank">Yandex Images</a>
+        <a class="platform-link" href="https://www.bing.com/visualsearch" target="_blank">Bing Visual Search</a>
+        <a class="platform-link" href="https://tineye.com/" target="_blank">TinEye</a>
       </div>
     </div>
   `;
@@ -105,38 +129,44 @@ function renderImageSearches(imageUrl) {
 
 btnEl.addEventListener("click", async () => {
   const val = inputEl.value.trim();
+  const extra = extraEl.value.trim();
   if (!val) {
     outputEl.innerHTML = `<div class="card">נא להזין ערך לבדיקה.</div>`;
     return;
   }
 
-  outputEl.innerHTML = `<div class="card">מבצע בדיקה מקיפה בעולם עבור <b>${val}</b>...</div>`;
+  outputEl.innerHTML = `<div class="card">מבצע בדיקה עבור <b>${val}</b>...</div>`;
   let html = "";
 
   const phoneInfo = analyzePhone(val);
   const hasDot = val.includes(".");
   const isIp = /^\d{1,3}(\.\d{1,3}){3}$/.test(val);
-  const looksLikeUsername = !phoneInfo && !hasDot && /^[a-zA-Z0-9._-]{2,40}$/.test(val);
+  const hasSpacesOrNonHandle = /\s/.test(val) || /[^\x00-\x7F]/.test(val) || val.startsWith("@");
+  const looksLikeUsername = !phoneInfo && !hasDot && !hasSpacesOrNonHandle && /^[a-zA-Z0-9._-]{2,40}$/.test(val);
 
   if (phoneInfo) {
-    const encodedPhone = encodeURIComponent(`"${val}"`);
-    const encodedE164 = encodeURIComponent(`"${phoneInfo.e164}"`);
+    const qOrig = encodeURIComponent(`"${val}"`);
+    const qE164 = encodeURIComponent(`"${phoneInfo.e164}"`);
     html += `
       <div class="card">
         <h3>ניתוח מספר טלפון</h3>
         <p>פורמט בינלאומי משוער: <b>${phoneInfo.e164}</b></p>
-        <p>ספרות: ${phoneInfo.length}</p>
+        <p>מספר ספרות: ${phoneInfo.length}</p>
         <p>אזור/קידומת: ${phoneInfo.countryHint}</p>
-        <p>חיפוש מופעים במנועים:
-          <a href="https://www.google.com/search?q=${encodedPhone}" target="_blank" style="color:#60a5fa">גוגל (מקורי)</a> |
-          <a href="https://www.google.com/search?q=${encodedE164}" target="_blank" style="color:#60a5fa">גוגל (בינלאומי)</a>
+        <p>חיפוש מופעים:
+          <a href="https://www.google.com/search?q=${qOrig}" target="_blank" style="color:#60a5fa">המספר המקורי</a> |
+          <a href="https://www.google.com/search?q=${qE164}" target="_blank" style="color:#60a5fa">פורמט בינלאומי</a>
         </p>
       </div>
     `;
   }
 
+  if (!phoneInfo && !isIp && (hasSpacesOrNonHandle || extra)) {
+    html += renderPeopleAddressProfiles(val, extra);
+  }
+
   if (looksLikeUsername) {
-    html += renderGlobalPlatforms(val);
+    html += renderPeopleAddressProfiles(val, extra);
 
     try {
       const ghData = await fetchJson(`https://api.github.com/users/${encodeURIComponent(val)}`);
@@ -215,16 +245,12 @@ btnEl.addEventListener("click", async () => {
     }
   }
 
-  outputEl.innerHTML = html || `<div class="card">לא הוחזרו תוצאות. נסה להזין קלט אחר.</div>`;
+  outputEl.innerHTML = html || `<div class="card">לא הוחזרו תוצאות. נסה להזין ערך אחר.</div>`;
 });
 
 imgUrlBtn.addEventListener("click", () => {
   const url = imgUrlInput.value.trim();
-  if (!url) {
-    outputEl.innerHTML = `<div class="card">נא להזין קישור תקין לתמונה.</div>`;
-    return;
-  }
-  outputEl.innerHTML = renderImageSearches(url);
+  outputEl.innerHTML = renderImageHub(url, null);
 });
 
 imgFileInput.addEventListener("change", (e) => {
@@ -232,20 +258,13 @@ imgFileInput.addEventListener("change", (e) => {
   if (!file) return;
 
   const reader = new FileReader();
-  reader.onload = function(evt) {
-    const dataUrl = evt.target.result;
-    outputEl.innerHTML = `
-      <div class="card">
-        <h3>קובץ תמונה מקומי</h3>
-        <p>שם הקובץ: ${file.name}</p>
-        <p>גודל: ${(file.size / 1024).toFixed(1)} KB</p>
-        <p>סוג: ${file.type}</p>
-        <img src="${dataUrl}" class="img-preview" alt="תצוגה מקדימה" />
-        <p style="margin-top: 10px; color: #94a3b8;">
-          * כדי לבצע חיפוש תמונות הפוך במנועים כמו Google Lens או Yandex, התמונה צריכה להיות מועלית לרשת (או להשתמש בקישור ישיר).
-        </p>
-      </div>
-    `;
+  reader.onload = function (evt) {
+    outputEl.innerHTML = renderImageHub("", {
+      name: file.name,
+      size: file.size,
+      type: file.type,
+      dataUrl: evt.target.result
+    });
   };
   reader.readAsDataURL(file);
 });
