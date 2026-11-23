@@ -9,6 +9,9 @@ const imgUrlInput = document.getElementById("imgUrlInput");
 const imgUrlBtn = document.getElementById("imgUrlBtn");
 const imgFileInput = document.getElementById("imgFileInput");
 
+const myLocBtn = document.getElementById("myLocationBtn");
+const myLocOut = document.getElementById("myLocationOutput");
+
 function switchTab(tabId, index) {
   document.querySelectorAll(".tab-btn").forEach((btn) => btn.classList.remove("active"));
   document.querySelectorAll(".tab-content").forEach((content) => content.classList.remove("active"));
@@ -268,6 +271,52 @@ imgFileInput.addEventListener("change", (e) => {
   };
   reader.readAsDataURL(file);
 });
+
+if (myLocBtn && myLocOut) {
+  myLocBtn.addEventListener("click", () => {
+    if (!("geolocation" in navigator)) {
+      myLocOut.innerHTML = `<div class="card">הדפדפן הזה לא תומך בשירותי מיקום.</div>`;
+      return;
+    }
+
+    myLocOut.innerHTML = `<div class="card">ממתין לאישור המיקום בדפדפן...</div>`;
+
+    navigator.geolocation.getCurrentPosition(
+      (pos) => {
+        const { latitude, longitude, accuracy } = pos.coords;
+        const lat = latitude.toFixed(6);
+        const lon = longitude.toFixed(6);
+        const acc = Math.round(accuracy);
+        const gMapsUrl = `https://www.google.com/maps?q=${lat},${lon}`;
+        const osmUrl = `https://www.openstreetmap.org/?mlat=${lat}&mlon=${lon}#map=16/${lat}/${lon}`;
+
+        myLocOut.innerHTML = `
+          <div class="card">
+            <h3>המיקום שאושר בדפדפן</h3>
+            <p><b>קואורדינטות:</b> ${lat}, ${lon}</p>
+            <p><b>דיוק משוער:</b> כ-${acc} מטרים</p>
+            <p>
+              <a href="${gMapsUrl}" target="_blank" style="color:#60a5fa">פתח ב-Google Maps</a> |
+              <a href="${osmUrl}" target="_blank" style="color:#60a5fa">פתח ב-OpenStreetMap</a>
+            </p>
+          </div>
+        `;
+      },
+      (err) => {
+        let msg = "לא ניתן לקבל מיקום.";
+        if (err.code === err.PERMISSION_DENIED) {
+          msg = "הגישה למיקום נדחתה (או נחסמה בהגדרות הדפדפן/המכשיר).";
+        } else if (err.code === err.POSITION_UNAVAILABLE) {
+          msg = "מידע המיקום אינו זמין כרגע.";
+        } else if (err.code === err.TIMEOUT) {
+          msg = "חלף הזמן המוקצב לקבלת המיקום.";
+        }
+        myLocOut.innerHTML = `<div class="card">${msg}</div>`;
+      },
+      { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
+    );
+  });
+}
 
 inputEl.addEventListener("keydown", (e) => {
   if (e.key === "Enter") btnEl.click();
