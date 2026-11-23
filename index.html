@@ -78,16 +78,19 @@
       background: #1d4ed8;
     }
     button.secondary-btn {
-      padding: 8px 14px;
+      padding: 10px 16px;
       border-radius: 6px;
       border: 1px solid #475569;
-      background: #1e293b;
-      color: #e2e8f0;
+      background: #0f172a;
+      color: #38bdf8;
       font-size: 14px;
+      font-weight: bold;
       cursor: pointer;
+      width: 100%;
     }
     button.secondary-btn:hover {
       background: #334155;
+      color: #ffffff;
     }
     .card {
       background: #0f172a;
@@ -148,6 +151,7 @@
       <button class="tab-btn" onclick="switchTab('image-search', 1)">חיפוש לפי תמונה</button>
     </div>
 
+    <!-- טאב 1: חיפוש טקסטואלי -->
     <div id="text-search" class="tab-content active">
       <p>הזן שם מלא, כתובת/מיקום, פרופיל או שם משתמש, דומיין, IP או מספר טלפון:</p>
       <div class="controls">
@@ -159,6 +163,7 @@
       </div>
     </div>
 
+    <!-- טאב 2: חיפוש תמונות -->
     <div id="image-search" class="tab-content">
       <p>הדבק כתובת תמונה (URL) או בחר קובץ תמונה מהמכשיר:</p>
       <div class="controls">
@@ -171,7 +176,15 @@
       <p class="note">הערה: מנועי חיפוש הפוך חיצוניים לרוב חוסמים שליחת קישור אוטומטית מהדפדפן—הכפתורים פותחים את המנועים כדי שתוכל להדביק/להעלות את התמונה ישירות.</p>
     </div>
 
+    <!-- אזור תוצאות חיפוש -->
     <div id="output"></div>
+
+    <!-- כפתור אישור וגילוי מיקום GPS -->
+    <div style="margin-top: 24px; padding-top: 16px; border-top: 1px solid #334155;">
+      <button id="myLocationBtn" class="secondary-btn">אשר והצג את המיקום שלי (GPS / דפדפן)</button>
+      <div id="myLocationOutput"></div>
+    </div>
+
   </div>
 
   <script src="app.js"></script>
