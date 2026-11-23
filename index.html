@@ -3,53 +3,154 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>לוח תחקור OSINT</title>
+  <title>מערכת תחקור גלובלית - Global OSINT Hub</title>
   <style>
     body {
       font-family: Arial, sans-serif;
-      background: #111827;
-      color: #f9fafb;
+      background: #0f172a;
+      color: #f8fafc;
       margin: 0;
-      padding: 40px 16px;
+      padding: 30px 16px;
     }
     .box {
-      max-width: 720px;
+      max-width: 850px;
       margin: 0 auto;
-      background: #1f2937;
+      background: #1e293b;
       padding: 24px;
       border-radius: 12px;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.4);
     }
-    input {
-      width: 72%;
-      padding: 10px;
-      border-radius: 8px;
+    .tabs {
+      display: flex;
+      gap: 10px;
+      margin-bottom: 20px;
+      border-bottom: 2px solid #334155;
+      padding-bottom: 10px;
+    }
+    .tab-btn {
+      background: transparent;
       border: none;
+      color: #94a3b8;
+      font-size: 16px;
+      font-weight: bold;
+      padding: 8px 16px;
+      cursor: pointer;
+      border-radius: 6px;
+    }
+    .tab-btn.active {
+      background: #2563eb;
+      color: #ffffff;
+    }
+    .tab-content {
+      display: none;
+    }
+    .tab-content.active {
+      display: block;
+    }
+    .controls {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+    input[type="text"], input[type="file"] {
+      flex: 1;
+      min-width: 240px;
+      padding: 12px;
+      border-radius: 8px;
+      border: 1px solid #475569;
+      background: #0f172a;
+      color: #ffffff;
       font-size: 16px;
     }
-    button {
-      padding: 10px 18px;
+    button.action-btn {
+      padding: 12px 24px;
       border-radius: 8px;
       border: none;
       background: #2563eb;
       color: white;
       font-size: 16px;
+      font-weight: bold;
       cursor: pointer;
     }
+    button.action-btn:hover {
+      background: #1d4ed8;
+    }
     .card {
-      background: #111827;
-      padding: 14px;
+      background: #0f172a;
+      padding: 16px 20px;
       border-radius: 8px;
       margin-top: 16px;
       border-right: 4px solid #3b82f6;
+    }
+    .card h3 {
+      margin-top: 0;
+      margin-bottom: 10px;
+      color: #60a5fa;
+    }
+    .card p {
+      margin: 6px 0;
+      line-height: 1.5;
+    }
+    .platform-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+      gap: 10px;
+      margin-top: 10px;
+    }
+    .platform-link {
+      display: block;
+      background: #1e293b;
+      padding: 10px;
+      border-radius: 6px;
+      text-align: center;
+      color: #38bdf8;
+      text-decoration: none;
+      border: 1px solid #334155;
+      font-size: 14px;
+    }
+    .platform-link:hover {
+      background: #334155;
+      color: #ffffff;
+    }
+    .img-preview {
+      max-width: 250px;
+      max-height: 250px;
+      border-radius: 8px;
+      margin-top: 10px;
+      border: 2px solid #334155;
     }
   </style>
 </head>
 <body>
   <div class="box">
-    <h2>בדיקת מידע גלוי (OSINT)</h2>
-    <p>הזן שם משתמש ב-GitHub, דומיין, כתובת IP או מספר טלפון:</p>
-    <input id="queryInput" type="text" placeholder="לדוגמה: octocat, example.com, 8.8.8.8 או +972501234567" />
-    <button id="runBtn">בדוק</button>
+    <h2>מערכת תחקור OSINT גלובלית</h2>
+    
+    <div class="tabs">
+      <button class="tab-btn active" onclick="switchTab('text-search')">חיפוש מזהה / טקסט</button>
+      <button class="tab-btn" onclick="switchTab('image-search')">חיפוש לפי תמונה</button>
+    </div>
+
+    <!-- טאב 1: חיפוש טקסטואלי -->
+    <div id="text-search" class="tab-content active">
+      <p>הזן שם משתמש, דומיין, כתובת IP או מספר טלפון לסריקה עולמית:</p>
+      <div class="controls">
+        <input id="queryInput" type="text" placeholder="לדוגמה: octocat, example.com, 8.8.8.8 או 0534182833" />
+        <button id="runBtn" class="action-btn">סרוק בעולם</button>
+      </div>
+    </div>
+
+    <!-- טאב 2: חיפוש תמונות -->
+    <div id="image-search" class="tab-content">
+      <p>הכנס קישור לתמונה ברשת או העלה קובץ תמונה מהמכשיר:</p>
+      <div class="controls" style="margin-bottom: 10px;">
+        <input id="imgUrlInput" type="text" placeholder="הדבק קישור ישיר לתמונה (URL)..." />
+        <button id="imgUrlBtn" class="action-btn">חפש לפי קישור</button>
+      </div>
+      <div class="controls">
+        <input id="imgFileInput" type="file" accept="image/*" />
+      </div>
+    </div>
+
     <div id="output"></div>
   </div>
 
