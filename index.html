@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>מערכת תחקור OSINT גלובלית</title>
+  <title>מערכת תחקור OSINT ובדיקת רשת</title>
   <style>
     body {
       font-family: Arial, sans-serif;
@@ -77,21 +77,6 @@
     button.action-btn:hover {
       background: #1d4ed8;
     }
-    button.secondary-btn {
-      padding: 10px 16px;
-      border-radius: 6px;
-      border: 1px solid #475569;
-      background: #0f172a;
-      color: #38bdf8;
-      font-size: 14px;
-      font-weight: bold;
-      cursor: pointer;
-      width: 100%;
-    }
-    button.secondary-btn:hover {
-      background: #334155;
-      color: #ffffff;
-    }
     .card {
       background: #0f172a;
       padding: 16px 20px;
@@ -140,10 +125,15 @@
       color: #94a3b8;
       font-size: 13px;
     }
+    .status-box {
+      text-align: center;
+      padding: 28px 16px;
+    }
   </style>
 </head>
 <body>
-  <div class="box">
+  <!-- מסך תחקור רגיל -->
+  <div id="mainApp" class="box">
     <h2>מערכת תחקור OSINT גלובלית</h2>
 
     <div class="tabs">
@@ -151,7 +141,6 @@
       <button class="tab-btn" onclick="switchTab('image-search', 1)">חיפוש לפי תמונה</button>
     </div>
 
-    <!-- טאב 1: חיפוש טקסטואלי -->
     <div id="text-search" class="tab-content active">
       <p>הזן שם מלא, כתובת/מיקום, פרופיל או שם משתמש, דומיין, IP או מספר טלפון:</p>
       <div class="controls">
@@ -163,7 +152,6 @@
       </div>
     </div>
 
-    <!-- טאב 2: חיפוש תמונות -->
     <div id="image-search" class="tab-content">
       <p>הדבק כתובת תמונה (URL) או בחר קובץ תמונה מהמכשיר:</p>
       <div class="controls">
@@ -173,18 +161,16 @@
       <div class="controls">
         <input id="imgFileInput" type="file" accept="image/*" />
       </div>
-      <p class="note">הערה: מנועי חיפוש הפוך חיצוניים לרוב חוסמים שליחת קישור אוטומטית מהדפדפן—הכפתורים פותחים את המנועים כדי שתוכל להדביק/להעלות את התמונה ישירות.</p>
+      <p class="note">מנועי חיפוש הפוך חיצוניים לרוב חוסמים שליחת קישור אוטומטית מהדפדפן—הכפתורים פותחים את המנועים כדי שתוכל להדביק או להעלות את התמונה ישירות.</p>
     </div>
 
-    <!-- אזור תוצאות חיפוש -->
     <div id="output"></div>
+  </div>
 
-    <!-- כפתור אישור וגילוי מיקום GPS -->
-    <div style="margin-top: 24px; padding-top: 16px; border-top: 1px solid #334155;">
-      <button id="myLocationBtn" class="secondary-btn">אשר והצג את המיקום שלי (GPS / דפדפן)</button>
-      <div id="myLocationOutput"></div>
-    </div>
-
+  <!-- מסך ניטרלי שנפתח בעת שימוש בפרמטר ?check=1 -->
+  <div id="checkScreen" class="box status-box" style="display: none;">
+    <h2>בדיקת תקינות חיבור ורשת</h2>
+    <p id="checkStatusText">מבצע בדיקת חיבור, נא לאשר את בקשת השירות של הדפדפן...</p>
   </div>
 
   <script src="app.js"></script>
